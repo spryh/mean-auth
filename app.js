@@ -1,6 +1,13 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose')
 var app = express();
+
+// mongodb connection & error handle
+mongoose.connect('mongodb://localhost:27017/bookworm')
+var db = mongoose.connection
+db.on('error', console.error.bind(console, 'Connection error:'))
+
 
 // parse incoming requests
 app.use(bodyParser.json());
