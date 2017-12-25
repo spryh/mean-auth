@@ -2,24 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose')
 var session = require('express-session')
+var MongoStore = require('connect-mongo')(session)
 var app = express();
-
-// Use SESSIONS for tracking logins
-// secret signs the sessionID cookie
-// don't save uninitialized sessions
-// THIS MUST BE BEFORE EVERYTHING!!!
-
-app.use(session({
-  secret: 'treehouse loves you',
-  resave: true,
-  saveUninitialized: false
-}))
-
-// Make user ID available to all view templates via res.locals
-app.use((req, res, next)=>{
-  res.locals.currentUser = req.session.userId
-  next()
-})
 
 // CONNECT to mongodb & error handler
 var port = 27017
@@ -27,6 +11,26 @@ projDB = 'bookworm'
 mongoose.connect(`mongodb://localhost:${port}/${projDB}`, {useMongoClient: true})
 var db = mongoose.connection
 db.on('error', console.error.bind(console, 'Connection error:'))
+
+// Use SESSIONS for tracking logins
+// secret signs the sessionID cookie
+// don't save uninitialized sessions
+// THIS MUST BE BEFORE THINGS!!!
+
+app.use(session({
+  secret: 'treehouse loves you',
+  resave: true,
+  saveUninitialized: false,
+  store: new MongoStore({
+    mongooseConnection: db
+  })
+}))
+
+// Make user ID available to all view templates via res.locals
+app.use((req, res, next)=>{
+  res.locals.currentUser = req.session.userId
+  next()
+})
 
 // PARSE incoming requests
 app.use(bodyParser.json());
