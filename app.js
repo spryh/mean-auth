@@ -15,6 +15,12 @@ app.use(session({
   saveUninitialized: false
 }))
 
+// Make user ID available to all view templates via res.locals
+app.use((req, res, next)=>{
+  res.locals.currentUser = req.session.userId
+  next()
+})
+
 // CONNECT to mongodb & error handler
 var port = 27017
 projDB = 'bookworm'
