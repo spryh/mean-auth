@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user')
+var mid = require('../middleware')
 
 // GET /
 router.get('/', function(req, res, next) {
@@ -21,14 +22,14 @@ router.get('/contact', function(req, res, next) {
 });
 
 // GET /register
-router.get('/register', (req, res, next)=>{
+router.get('/register', mid.loggedOut, (req, res, next)=>{
   // return res.send('NODEMON Register today!')
   // render the Pug template
   res.render('register', { title: 'Sign Up' });
 });
 
 // GET /login
-router.get('/login', (req, res, next)=>{
+router.get('/login', mid.loggedOut, (req, res, next)=>{
   // return res.send('Login page')
   res.render('login', { title: 'Log In' });
 });
