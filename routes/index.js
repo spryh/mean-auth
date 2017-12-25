@@ -4,6 +4,9 @@ var User = require('../models/user')
 
 // GET /
 router.get('/', function(req, res, next) {
+  // Simple session setting test
+  // req.session.userId = 10101
+  // console.log(req.session.userId)
   return res.render('index', { title: 'Home' });
 });
 
@@ -20,8 +23,38 @@ router.get('/contact', function(req, res, next) {
 // GET /register
 router.get('/register', (req, res, next)=>{
   // return res.send('NODEMON Register today!')
+  // render the Pug template
   res.render('register', { title: 'Sign Up' });
 });
+
+// GET /login
+router.get('/login', (req, res, next)=>{
+  // return res.send('Login page')
+  res.render('login', { title: 'Log In' });
+});
+
+// GET /profile
+router.get('/profile', (req, res, next)=>{
+  if (!req.session.userId) {
+    var err = new Error('User not authorized to view page.')
+    err.status = 403
+    return next(err)
+  } else {
+    User.findById(req.session.userId)
+      .exec((error, user)=>{
+        if(error){ return next(error) }
+        else {
+          return res.render('profile', {
+            title: 'Profile',
+            name: user.name,
+            favorite: user.favoriteBook
+          })
+        }
+      })
+  }
+  // res.render('login', { title: 'Log In' });
+});
+
 
 // POST /register
 router.post('/register', (req, res, next)=>{
@@ -48,7 +81,10 @@ router.post('/register', (req, res, next)=>{
             if(error){
               return next(error)
             } else {
-              //return res.send('User created!')
+              // Create or add session.userId to document's _id
+              req.session.userId = user._id
+              console.log(req.session)
+              console.log('Redirecting to /profile')
               return res.redirect('/profile')
             } 
           })
@@ -59,5 +95,31 @@ router.post('/register', (req, res, next)=>{
       return next(err)
   }
 })
+
+// POST /login
+router.post('/login', (req, res, next)=>{
+  // console.log('Logged In')
+  // return res.send('Logged In')
+  if (req.body.email &&
+    req.body.password) {
+      User.authenticate(req.body.email, req.body.password, function(error, user){
+        if (error || !user) {
+          var err = new Error('Unauthorized: Incorrect email or password.')
+          err.status = 401
+          return next(err)
+        } else {
+          // Create or add session.userId to document's _id
+          req.session.userId = user._id
+          console.log(req.session)
+          console.log('Redirecting to /profile')
+          return res.redirect('/profile')
+        }
+      })
+  } else { 
+    var err = new Error('Unauthorized: All fields are required.')
+    err.status = 401
+    return next(err)
+  }
+});
 
 module.exports = router;

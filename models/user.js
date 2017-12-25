@@ -1,5 +1,3 @@
-//import { userInfo } from 'os';
-
 var mongoose = require('mongoose')
 var bcrypt = require('bcrypt')
 
@@ -10,6 +8,29 @@ var UserSchema = new  mongoose.Schema({
     favoriteBook: {type: String, required: true, trim: true},
     password: {type: String, required: true}
 })
+
+// Create an AUTHENTICATE function in the UserSchema model that checks input against database document
+// Statics allows adding methods to model
+UserSchema.statics.authenticate = function(email, password, callback){
+    User.findOne({email: email})
+        .exec((error, user)=>{
+            if(error) { return callback(error)}
+            else if (!user) {
+                var err = new Error('User not found')
+                err.status = 401
+                return callback(err)
+            } else {
+                bcrypt.compare(password, user.password, (error, result)=>{
+                    if(result == true) { 
+                        // Null indicates no error
+                        return callback(null, user)
+                    } else { return callback()}
+                })
+            }
+        })
+}
+
+
 
 // Hash password before storage with Save pre hook
 UserSchema.pre('save', function(next){
