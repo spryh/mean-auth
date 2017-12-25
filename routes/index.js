@@ -35,12 +35,12 @@ router.get('/login', mid.loggedOut, (req, res, next)=>{
 });
 
 // GET /profile
-router.get('/profile', (req, res, next)=>{
-  if (!req.session.userId) {
+router.get('/profile',  mid.requiresLogin, (req, res, next)=>{
+  /* if (!req.session.userId) {
     var err = new Error('User not authorized to view page.')
     err.status = 403
     return next(err)
-  } else {
+  } else { */
     User.findById(req.session.userId)
       .exec((error, user)=>{
         if(error){ return next(error) }
@@ -52,7 +52,7 @@ router.get('/profile', (req, res, next)=>{
           })
         }
       })
-  }
+  // }
   // res.render('login', { title: 'Log In' });
 });
 
